@@ -77,10 +77,10 @@ h2{font:600 clamp(28px,4vw,40px)/1.1 'Barlow Condensed',sans-serif;margin:0 0 10
 a:focus-visible,.ferr button:focus-visible,.ferr input:focus-visible,#lista summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .rodape{margin-top:96px;color:var(--faint);font-size:14px;line-height:1.55;max-width:66ch}.rodape p{margin:0 0 6px}
 .mbox{position:relative}
-.mapa{-webkit-tap-highlight-color:transparent}.mapa circle[data-v]{cursor:pointer}
+.mapa{-webkit-tap-highlight-color:transparent;touch-action:manipulation}.mapa circle[data-v]{cursor:pointer}
 .mapa circle,.mapa path{vector-effect:non-scaling-stroke}
 .mapa .anel{fill:none;stroke:var(--ink);stroke-width:2.5;pointer-events:none}
-.mcard{position:absolute;left:6px;right:6px;padding:13px 16px 14px;background:rgba(15,35,56,.95);border:1.5px solid var(--gold);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:surge .25s ease-out both}
+.mcard{position:absolute;left:6px;right:6px;padding:13px 16px 14px;background:rgba(15,35,56,.95);border:1.5px solid var(--gold);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.45);scroll-margin:14px;animation:surge .25s ease-out both}
 .mcard.cima{top:6px}.mcard.baixo{bottom:6px}
 @keyframes surge{from{opacity:0;transform:translateY(6px)}}
 .mcard h3{font:600 21px/1.12 'Barlow Condensed',sans-serif;margin:0 30px 3px 0;text-wrap:balance}
@@ -96,7 +96,7 @@ a:focus-visible,.ferr button:focus-visible,.ferr input:focus-visible,#lista summ
  main{padding:24px 20px 96px}
  .hero{grid-template-columns:1fr;gap:18px;padding-block:48px 40px}.rank{font-size:168px}
  .stats{grid-template-columns:1fr}.stat{padding:24px 0}.stat+.stat{padding-left:0;border-left:0;border-top:1px solid var(--line)}
- section{margin-top:84px}.dominio{grid-template-columns:1fr}.mapa,.mbox{max-width:320px}
+ section{margin-top:84px}.dominio{grid-template-columns:1fr}.mapa,.mbox{max-width:400px}.mcard{left:4px;right:4px;padding:10px 12px 11px}.mcard.cima{top:4px}.mcard.baixo{bottom:4px}.mcard h3{font-size:18.5px;margin-right:28px}.mcard .mb{font-size:13px;margin-bottom:8px}.mcard .mg{gap:8px;padding-top:8px}.mcard .mg b{font-size:26px}.mcard .mg span{font-size:12px}.mcard .ml{font-size:13.5px;margin-top:8px}.mcard .mq{font-size:12.5px}.mcard .mx{top:2px;right:2px}
  .pares{grid-template-columns:1fr;gap:34px}
  .tb{grid-template-columns:1fr 1fr;gap:8px 14px}.tb.th{display:none}.tb-b{grid-column:1/-1;font-size:20px}
  .bg summary{grid-template-columns:1fr 58px 50px}.lj{grid-template-columns:1fr 48px 52px 36px;gap:8px;padding-left:18px}.lh{grid-template-columns:1fr 58px 50px}
@@ -236,6 +236,8 @@ a:focus-visible,.ferr button:focus-visible,.ferr input:focus-visible,#lista summ
   anel.setAttribute('cx',c.getAttribute('cx'));anel.setAttribute('cy',c.getAttribute('cy'));anel.setAttribute('r',c.getAttribute('r'));
   s.appendChild(anel);
   animar(alvo(c,Math.min(cartao.offsetHeight/s.getBoundingClientRect().height,.6),lado),null,ja);
+  var r=cartao.getBoundingClientRect();
+  if(!ja&&(r.top<0||r.bottom>window.innerHeight))cartao.scrollIntoView({block:'nearest',behavior:calmo?'auto':'smooth'});
  }
  function fechar(){
   if(!sel)return;sel=null;
@@ -249,13 +251,14 @@ a:focus-visible,.ferr button:focus-visible,.ferr input:focus-visible,#lista summ
   var pt=s.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;pt=pt.matrixTransform(m.inverse());
   var melhor=null,dm=Infinity;
   pontos.forEach(function(c){var d=Math.hypot(c.getAttribute('cx')-pt.x,c.getAttribute('cy')-pt.y)-c.getAttribute('r');if(d<dm){dm=d;melhor=c}});
-  return dm<=14/m.a?melhor:null;
+  return dm<=16/m.a?melhor:null;
  }
+ // ouvinte no próprio SVG: no iPhone, o toque fora dos pontos só vira clique assim
+ s.addEventListener('click',function(e){var c=e.target.matches('circle[data-v]')?e.target:perto(e);if(c)escolher(c);else fechar()});
  document.addEventListener('click',function(e){
   var t=e.target;
-  if(cartao&&cartao.contains(t)&&!t.closest('.mx'))return;
-  var c=t.closest&&t.closest('svg.mapa')?(t.matches('circle[data-v]')?t:perto(e)):null;
-  if(c)escolher(c);else fechar();
+  if(s.contains(t)||(cartao&&cartao.contains(t)&&!t.closest('.mx')))return;
+  fechar();
  });
  document.addEventListener('keydown',function(e){if(e.key==='Escape')fechar()});
  window.addEventListener('resize',function(){if(sel)escolher(sel,true)});
